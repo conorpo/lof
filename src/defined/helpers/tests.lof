@@ -1,0 +1,60 @@
+import "./logic.lof" as Logic;
+import "./sigma.lof" as Sigma;
+import "./functions.lof" as Functions;
+import "./equivalence.lof" as Equivalence;
+import "./option.lof" as Option;
+import "./bool.lof" as Bool;
+import "../path_algebra/paths.lof" as Paths;
+
+// DNE for propositions is proved with excluded middle as an explicit parameter.
+export let classical_dne = Logic::dne_from_em
+    : (Π(A:U0). Logic::isProp(A) -> (A + (A -> 0))) ->
+        Π(A:U0). Logic::isProp(A) -> ((A -> 0) -> 0) -> A;
+
+// Constructive choice extracts witnesses from dependent pairs, with their proofs.
+export let sigma_choice = Sigma::choice
+    : Π(A:U0). Π(B:A -> U0). Π(R:Π(x:A). B(x) -> U0).
+        (Π(x:A). Σ(y:B(x)). R(x, y)) ->
+        Σ(f:Π(x:A). B(x)). Π(x:A). R(x, f(x));
+
+export let choice_on_paths = Sigma::choice(Nat, λn. Nat, λn. λm. n = m, λn. (n, refl(n)))
+    : Σ(f:Nat -> Nat). Π(n:Nat). n = f(n);
+
+// Check both the base level and the recursive equation with an arbitrary neutral n.
+export let ntype_zero = λ(A:U0). refl(Logic::isNType(#0, A))
+    : Π(A:U0). Logic::isNType(#0, A) = Logic::isSet(A);
+export let ntype_one = λ(A:U0). refl(Logic::isNType(#1, A))
+    : Π(A:U0). Logic::isNType(#1, A) = (Π(x:A). Π(y:A). Logic::isSet(x = y));
+export let ntype_successor = λ(n:Nat). λ(A:U0). refl(Logic::isNType(Succ(n), A))
+    : Π(n:Nat). Π(A:U0). Logic::isNType(Succ(n), A) =
+        (Π(x:A). Π(y:A). Logic::isNType(n, x = y));
+
+// Expand the structures independently: these tests catch missing fields or a wrong triangle.
+export let quasi_inverse_shape = λ(A:U0). λ(B:U0). λ(f:A -> B). refl(Equivalence::qinv(A, B, f))
+    : Π(A:U0). Π(B:U0). Π(f:A -> B). Equivalence::qinv(A, B, f) =
+        (Σ(g:B -> A). (Π(x:A). g(f(x)) = x) * (Π(y:B). f(g(y)) = y));
+
+export let half_adjoint_shape = λ(A:U0). λ(B:U0). λ(f:A -> B). refl(Equivalence::isHAE(A, B, f))
+    : Π(A:U0). Π(B:U0). Π(f:A -> B). Equivalence::isHAE(A, B, f) =
+        (Σ(g:B -> A). Σ(eta:Π(x:A). g(f(x)) = x). Σ(epsilon:Π(y:B). f(g(y)) = y).
+            Π(x:A). Paths::ap(A, B, f, g(f(x)), x, eta(x)) = epsilon(f(x)));
+
+// The identity map supplies closed witnesses, uniformly in the type A.
+export let identity_quasi_inverse = Equivalence::qinv_identity
+    : Π(A:U0). Equivalence::qinv(A, A, Functions::identity(A));
+export let identity_half_adjoint = Equivalence::hae_identity
+    : Π(A:U0). Equivalence::isHAE(A, A, Functions::identity(A));
+
+// The second component's type depends on the selected first component.
+export let dependent_second_projection = Sigma::snd(Nat, λn. n = n, (#2, refl(#2)))
+    : #2 = #2;
+// Exercise both option constructors and the boolean constructor convention.
+export let option_some_computes = refl(Option::get_or(Nat, #0, Option::some(Nat, #2)))
+    : Option::get_or(Nat, #0, Option::some(Nat, #2)) = #2;
+export let option_none_computes = refl(Option::get_or(Nat, #3, Option::none(Nat)))
+    : Option::get_or(Nat, #3, Option::none(Nat)) = #3;
+export let bool_not_true = refl(Bool::not(Bool::true)) : Bool::not(Bool::true) = Bool::false;
+// Basic truncation-level witnesses need no classical assumption.
+export let unit_is_a_proposition = Logic::unit_isProp : Logic::isProp(1);
+export let unit_is_contractible = Logic::unit_contractible : Logic::isContractible(1);
+export let empty_is_a_proposition = Logic::empty_isProp : Logic::isProp(0);

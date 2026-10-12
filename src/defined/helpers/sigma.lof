@@ -1,0 +1,28 @@
+// Projections from dependent pairs. The family B may depend on the first component.
+export let fst = λ(A:U0). λ(B:A -> U0). ind_Σ(
+    Σ(x:A). B(x),
+    λs. A,
+    λa. λb. a
+);
+
+// The second projection's result type is B(fst(s)), not a fixed type.
+export let snd = λ(A:U0). λ(B:A -> U0). ind_Σ(
+    Σ(x:A). B(x),
+    λs. B(fst(A, B, s)),
+    λa. λb. b
+);
+
+// Constructive choice for witnessed Σ-existence. This needs no classical axiom.
+// g(x) already contains both a choice and its proof; project each pointwise.
+export let choice = λ(A:U0). λ(B:A -> U0). λ(R:Π(x:A). B(x) -> U0).
+    λ(g:Π(x:A). Σ(y:B(x)). R(x, y)). (
+        (λx. fst(B(x), R(x), g(x)), λx. snd(B(x), R(x), g(x)))
+        : Σ(f:Π(x:A). B(x)). Π(x:A). R(x, f(x))
+    );
+
+// Convert between a function on pairs and a function taking two arguments.
+export let curry = λ(A:U0). λ(B:A -> U0). λ(C:U0).
+    λ(f:(Σ(x:A). B(x)) -> C). λ(a:A). λ(b:B(a)). f((a, b));
+
+export let uncurry = λ(A:U0). λ(B:A -> U0). λ(C:U0).
+    λ(f:Π(a:A). B(a) -> C). rec_Σ(Σ(x:A). B(x), C, f);

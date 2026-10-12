@@ -1,0 +1,58 @@
+// Equivalence data for small types. These definitions require neither
+// function extensionality nor univalence.
+import "../path_algebra/paths.lof" as Paths;
+import "./logic.lof" as Logic;
+import "./functions.lof" as Functions;
+
+// A homotopy compares dependent functions pointwise, within each fiber B(x).
+export let homotopy = λ(A:U0). λ(B:A -> U0).
+    λ(f:Π(x:A). B(x)). λ(g:Π(x:A). B(x)). Π(x:A). f(x) = g(x);
+
+// A quasi-inverse consists of g and two homotopies: g∘f ~ id and f∘g ~ id.
+// This is a type of inverse data; no assertion that this data is a proposition is made.
+export let qinv = λ(A:U0). λ(B:U0). λ(f:A -> B).
+    Σ(g:B -> A).
+        (Π(x:A). g(f(x)) = x) *
+        (Π(y:B). f(g(y)) = y);
+
+// Package a function together with its quasi-inverse data.
+export let QuasiEquiv = λ(A:U0). λ(B:U0). Σ(f:A -> B). qinv(A, B, f);
+
+// A half-adjoint equivalence adds one triangle coherence to the inverse data.
+// Both sides of the coherence are paths f(g(f(x))) = f(x).
+export let isHAE = λ(A:U0). λ(B:U0). λ(f:A -> B).
+    Σ(g:B -> A).
+    Σ(eta:Π(x:A). g(f(x)) = x).
+    Σ(epsilon:Π(y:B). f(g(y)) = y).
+    Π(x:A). Paths::ap(A, B, f, g(f(x)), x, eta(x)) = epsilon(f(x));
+
+export let HalfAdjointEquiv = λ(A:U0). λ(B:U0).
+    Σ(f:A -> B). isHAE(A, B, f);
+
+// A fiber remembers a preimage x and a path from f(x) to the target y.
+export let fiber = λ(A:U0). λ(B:U0). λ(f:A -> B). λ(y:B).
+    Σ(x:A). f(x) = y;
+
+// The contractible-fiber definition of equivalence.
+export let isEquiv = λ(A:U0). λ(B:U0). λ(f:A -> B).
+    Π(y:B). Logic::isContractible(fiber(A, B, f, y));
+
+export let Equiv = λ(A:U0). λ(B:U0). Σ(f:A -> B). isEquiv(A, B, f);
+
+// The identity function is its own quasi-inverse; both homotopies are reflexivity.
+export let qinv_identity = λA.
+    (Functions::identity(A), (λx. refl(x), λy. refl(y)))
+    : Π(A:U0). qinv(A, A, Functions::identity(A));
+
+// Nested Σ-pairs follow the order g, eta, epsilon, triangle coherence.
+// The triangle is refl(refl(x)), a path between the two reflexivity paths.
+export let hae_identity = λA. (
+    Functions::identity(A),
+    (λx. refl(x), (λy. refl(y), λx. refl(refl(x))))
+) : Π(A:U0). isHAE(A, A, Functions::identity(A));
+
+// Package the identity map with the structures just constructed.
+export let identity_quasi_equiv = λA. (Functions::identity(A), qinv_identity(A))
+    : Π(A:U0). QuasiEquiv(A, A);
+export let identity_half_adjoint_equiv = λA. (Functions::identity(A), hae_identity(A))
+    : Π(A:U0). HalfAdjointEquiv(A, A);

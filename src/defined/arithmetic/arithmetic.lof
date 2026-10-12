@@ -1,0 +1,93 @@
+import "../path_algebra/paths.lof" as Paths;
+import "../helpers/bool.lof" as Bool;
+
+// Natural-number operations and their path-valued laws.
+// Recursion is on the first argument of add and mul.
+let id_nat = λn. n : Nat -> Nat;
+
+// add(0,m) = m; add(Succ(n),m) = Succ(add(n,m)).
+export let add = recNat(
+    Nat -> Nat,
+    id_nat,
+    λn. λrec. λm. Succ(rec(m))
+) : Nat -> Nat -> Nat;
+
+// mul(0,m) = 0; mul(Succ(n),m) = add(m,mul(n,m)).
+export let mul = recNat(
+    Nat -> Nat,
+    λm. #0,
+    λn. λrec. λm. add(m, rec(m))
+) : Nat -> Nat -> Nat;
+
+// Saturating predecessor: pred(0) = 0, pred(Succ(n)) = n.
+export let pred = recNat(Nat, #0, λn. λprevious. n);
+
+// Truncated subtraction applies pred to m once for each successor of n.
+export let sub = λ(m:Nat). recNat(Nat, m, λn. λprevious. pred(previous));
+
+// Exponentiation takes base first. In particular pow(#0,#0) = #1.
+export let pow = λ(base:Nat). recNat(Nat, #1, λn. λprevious. mul(base, previous));
+
+export let double = λ(n:Nat). add(n, n);
+
+// factorial(0) = 1; factorial(Succ(n)) = Succ(n) * factorial(n).
+export let factorial = recNat(Nat, #1, λn. λprevious. mul(Succ(n), previous));
+
+// Return true exactly for Zero; the successor case ignores its recursive result.
+export let is_zero = recNat(Bool::Bool, Bool::true, λn. λprevious. Bool::false);
+
+// The left unit law is computation. The right unit law needs induction on n.
+export let add_zero_left = λ(n:Nat). refl(n);
+export let add_zero_right = ind_nat(
+    λn. add(n, #0) = n,
+    refl(#0),
+    // Lift the induction hypothesis through Succ.
+    λn. λih. Paths::ap(Nat, Nat, λk. Succ(k), add(n, #0), n, ih)
+);
+
+// Move a successor out of the second argument; keep m arbitrary in the motive.
+export let add_succ_right = ind_nat(
+    λn. Π(m:Nat). add(n, Succ(m)) = Succ(add(n, m)),
+    λm. refl(Succ(m)),
+    λn. λih. λm. Paths::ap(
+        Nat, Nat, λk. Succ(k), add(n, Succ(m)), Succ(add(n, m)), ih(m)
+    )
+);
+
+// Associativity follows by induction on the first summand.
+export let add_assoc = ind_nat(
+    λn. Π(m:Nat). Π(k:Nat). add(add(n, m), k) = add(n, add(m, k)),
+    λm. λk. refl(add(m, k)),
+    λn. λih. λm. λk. Paths::ap(
+        Nat, Nat, λj. Succ(j), add(add(n, m), k), add(n, add(m, k)), ih(m, k)
+    )
+);
+
+// Commutativity uses the right unit and right successor laws above.
+export let add_comm = ind_nat(
+    λn. Π(m:Nat). add(n, m) = add(m, n),
+    λm. Paths::inv(Nat, add(m, #0), m, add_zero_right(m)),
+    λn. λih. λm. Paths::concat(
+        Nat,
+        Succ(add(n, m)), Succ(add(m, n)),
+        // First lift commutativity for n through Succ.
+        Paths::ap(Nat, Nat, λk. Succ(k), add(n, m), add(m, n), ih(m)),
+        add(m, Succ(n)),
+        // Then move Succ back into the second argument, reversing that law.
+        Paths::inv(Nat, add(m, Succ(n)), Succ(add(m, n)), add_succ_right(m, n))
+    )
+);
+
+// Multiplication by zero: the left case computes, the right case inducts.
+export let mul_zero_left = λ(n:Nat). refl(#0);
+export let mul_zero_right = ind_nat(λn. mul(n, #0) = #0, refl(#0), λn. λih. ih);
+
+// mul(1,n) reduces to add(n,0), so reuse the right unit law for addition.
+export let mul_one_left = λ(n:Nat). add_zero_right(n);
+
+// For the right unit law, each multiplication step computes to one Succ.
+export let mul_one_right = ind_nat(
+    λn. mul(n, #1) = n,
+    refl(#0),
+    λn. λih. Paths::ap(Nat, Nat, λk. Succ(k), mul(n, #1), n, ih)
+);

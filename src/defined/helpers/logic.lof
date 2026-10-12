@@ -1,0 +1,59 @@
+// Propositions as types. 0 is Empty; ¬A is parser shorthand for A -> 0.
+export let not = λ(A:U0). A -> 0;
+
+// From an inhabitant of Empty, produce a value of any small type.
+export let absurd = λ(A:U0). rec0(A);
+
+// A witness of A refutes every proposed refutation of A.
+export let double_neg_intro = λ(A:U0). λ(a:A). λ(na:¬A). na(a);
+
+// Contractibility supplies a center and a path from it to every point.
+export let isContractible = λ(A:U0).
+    Σ(center:A). Π(x:A). center = x;
+
+// A mere proposition has at most one point, up to paths.
+export let isProp = λ(A:U0). Π(x:A). Π(y:A). x = y;
+
+// A set has proposition-valued identity types: parallel paths are equal.
+export let isSet = λ(A:U0). Π(x:A). Π(y:A). isProp(x = y);
+
+// Natural levels: #0 means sets, #1 means 1-types, etc.
+// The negative levels have names: isProp (-1), isContractible (-2).
+// The motive returns U0 -> U0, which lives in U1: this is large elimination.
+export let isNType = ind_nat(
+    λ(n:Nat). U0 -> U0,
+    // Sets are the zero level.
+    isSet,
+    // Each next level requires all identity types to have the previous level.
+    λn. λprevious. λA. Π(x:A). Π(y:A). previous(x = y)
+);
+
+// The type of the classical assumption, with no unchecked inhabitant installed.
+// Excluded middle here applies to mere propositions, with isProp supplied explicitly.
+export let ExcludedMiddle = Π(A:U0). isProp(A) -> (A + ¬A);
+export let DoubleNegationElimination = Π(A:U0). isProp(A) -> ¬¬A -> A;
+
+// A decision for this particular A suffices to eliminate double negation.
+export let dne_from_decision = λ(A:U0). λ(decision:A + ¬A). λ(nn:¬¬A).
+    recCoproduct(
+        A + ¬A,
+        A,
+        λa. a,                   // Positive case: return the witness of A.
+        λna. rec0(A)(nn(na))      // Negative case: nn contradicts the refutation na.
+    )(decision);
+
+// The classical assumption is an argument, not a closed constructive definition.
+export let dne_from_em = λ(em:ExcludedMiddle). λ(A:U0).
+    λ(h:isProp(A)). λ(nn:¬¬A). dne_from_decision(A, em(A, h), nn);
+
+// Unit has center *; unit induction connects it to every other inhabitant.
+export let unit_contractible = (*, λu. ind1(λv. * = v, refl(*))(u))
+    : isContractible(1);
+// Empty is a proposition because its first hypothetical point already gives a contradiction.
+export let empty_isProp = λx. rec0(Π(y:0). x = y)(x) : isProp(0);
+
+// Induct on both unit inhabitants; the remaining case is refl(*).
+export let unit_isProp = λx. ind1(
+    λu. Π(v:1). u = v,
+    ind1(λv. * = v, refl(*))
+)(x) : isProp(1);

@@ -1,0 +1,29 @@
+{
+  "name": "lof-language",
+  "displayName": "LOF Language",
+  "description": "Syntax highlighting, checked diagnostics, and completion for LOF.",
+  "version": "0.1.0",
+  "publisher": "lof-local",
+  "engines": { "vscode": "^1.85.0" },
+  "categories": ["Programming Languages"],
+  "activationEvents": ["onLanguage:lof"],
+  "main": "./extension.js",
+  "contributes": {
+    "languages": [{
+      "id": "lof", "aliases": ["LOF", "lof"], "extensions": [".lof"],
+      "configuration": "./language-configuration.json"
+    }],
+    "grammars": [{"language": "lof", "scopeName": "source.lof", "path": "./syntaxes/lof.tmLanguage.json"}],
+    "snippets": [{"language": "lof", "path": "./snippets/lof.json"}],
+    "commands": [{"command": "lof.restartServer", "title": "LOF: Restart Language Server"}],
+    "configuration": {
+      "title": "LOF",
+      "properties": {
+        "lof.serverPath": {
+          "type": "string", "default": "${workspaceFolder}/target/debug/lof-lsp",
+          "description": "Path to lof-lsp. Build with cargo +nightly build --bin lof-lsp. Supports ${workspaceFolder}."
+        }
+      }
+    }
+  }
+}

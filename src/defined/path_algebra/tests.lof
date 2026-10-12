@@ -1,0 +1,35 @@
+import "./paths.lof" as Paths;
+
+// These annotations state the intended theorems independently of the inferred exports.
+export let inverse_law = Paths::inv_involutive
+    : Π(A:U0). Π(x:A). Π(y:A). Π(p:x = y).
+        Paths::inv(A, y, x, Paths::inv(A, x, y, p)) = p;
+
+export let associativity = Paths::concat_assoc
+    : Π(A:U0). Π(x:A). Π(y:A). Π(p:x = y). Π(z:A). Π(q:y = z). Π(w:A). Π(r:z = w).
+        Paths::concat(A, x, z, Paths::concat(A, x, y, p, z, q), w, r) =
+        Paths::concat(A, x, y, p, w, Paths::concat(A, y, z, q, w, r));
+
+export let left_unit = Paths::lu
+    : Π(A:U0). Π(x:A). Π(y:A). Π(p:x = y). Paths::concat(A, x, x, refl(x), y, p) = p;
+export let right_unit = Paths::ru
+    : Π(A:U0). Π(x:A). Π(y:A). Π(p:x = y). Paths::concat(A, x, y, p, y, refl(y)) = p;
+
+// The dependent statement must transport f(x) into P(y) before comparing with f(y).
+export let dependent_action = Paths::apd
+    : Π(A:U0). Π(P:A -> U0). Π(f:Π(x:A). P(x)). Π(x:A). Π(y:A). Π(p:x = y).
+        Paths::transport(A, P, x, y, p, f(x)) = f(y);
+
+// Reflexivity inputs test the computation rules, including paths between paths.
+export let ap_computes = refl(Paths::ap(Nat, Nat, λn. Succ(n), #2, #2, refl(#2)))
+    : Paths::ap(Nat, Nat, λn. Succ(n), #2, #2, refl(#2)) = refl(#3);
+
+export let concat_computes = refl(Paths::concat(Nat, #2, #2, refl(#2), #2, refl(#2)))
+    : Paths::concat(Nat, #2, #2, refl(#2), #2, refl(#2)) = refl(#2);
+
+export let assoc_computes = refl(Paths::concat_assoc(Nat, #2, #2, refl(#2), #2, refl(#2), #2, refl(#2)))
+    : Paths::concat_assoc(Nat, #2, #2, refl(#2), #2, refl(#2), #2, refl(#2)) = refl(refl(#2));
+
+// Use the nonconstant family P(n) = (n=n), rather than a constant type.
+export let apd_computes = refl(Paths::apd(Nat, λn. n = n, λn. refl(n), #2, #2, refl(#2)))
+    : Paths::apd(Nat, λn. n = n, λn. refl(n), #2, #2, refl(#2)) = refl(refl(#2));

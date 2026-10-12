@@ -1,0 +1,11 @@
+// Chapter 1: Types and Terms
+import "../src/defined/helpers/logic.lof" as Logic;
+
+export let comp = λ(A:U0).λ(B:U0).λ(C:U0).
+            λ(f:A->B).λ(g:B->C).λ(x:A).g(f(x));
+
+export let _11t = Π(A:U0). ¬¬¬A -> ¬A;
+
+export let dn = λA. λa. λna. na(a): Π(A:U0). A -> ¬¬A;
+
+export let _11t_proof = λA. λnnna. λa. nnna(dn(A)(a)) : _11t;

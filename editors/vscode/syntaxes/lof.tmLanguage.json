@@ -1,0 +1,13 @@
+{
+  "scopeName": "source.lof",
+  "patterns": [
+    {"name": "comment.line.double-slash.lof", "match": "//.*$"},
+    {"name": "string.quoted.double.lof", "begin": "\"", "end": "\"", "patterns": [{"name": "constant.character.escape.lof", "match": "\\\\."}]},
+    {"name": "keyword.control.lof", "match": "\\b(?:let|export|import|as)\\b"},
+    {"name": "keyword.operator.lof", "match": "λ|Π|Σ|¬|→|->|×|\\*|\\+|=|::|:"},
+    {"name": "storage.type.lof", "match": "\\b(?:Nat|Unit|Empty|U[0-9]+)\\b"},
+    {"name": "support.function.lof", "match": "\\b(?:tt|Zero|Succ|inl|inr|refl|ind0|ind1|rec0|rec1|ind_nat|ind_id|ind_coproduct|recNat|recId|recCoproduct|recSigma)\\b|ind_Σ|rec_Σ|\\brefl_[\\p{L}\\p{N}_']+"},
+    {"name": "constant.numeric.lof", "match": "#[0-9]+\\b"},
+    {"name": "storage.type.lof", "match": "\\b[01]\\b"}
+  ]
+}

@@ -1,0 +1,90 @@
+// Paths, transport, and dependent application for small types.
+// ind_id(A, P, d) proves P(x, y, p) by reducing p to refl(x).
+
+// Apply an ordinary function to a path: p : x=y gives ap(f,p) : f(x)=f(y).
+export let ap = λA. λB. λf. ind_id(
+    A,
+    λx. λy. λp. f(x) = f(y),
+    λx. refl(f(x))
+) : Π(A:U0). Π(B:U0). Π(f:A -> B). Π(x:A). Π(y:A). (x = y) -> f(x) = f(y);
+
+// Reverse a path. Reflexivity is its own inverse.
+export let inv = λA. ind_id(
+    A,
+    λx. λy. λp. y = x,
+    λx. refl(x)
+) : Π(A:U0). Π(x:A). Π(y:A). (x = y) -> y = x;
+
+// Reversing twice returns the original path, up to a path between paths.
+export let inv_involutive = λ(A:U0). ind_id(
+    A,
+    λx. λy. λp. inv(A, y, x, inv(A, x, y, p)) = p,
+    λx. refl(refl(x))
+);
+
+// Compose p : x=y with q : y=z, giving a path x=z.
+// First induct on p, then on q. Both reflexivity paths compute to reflexivity.
+export let concat = λ(A:U0). ind_id(
+    A,
+    λx. λy. λp. Π(z:A). (y = z) -> x = z,
+    λx. ind_id(
+        A,
+        λu. λz. λq. u = z,
+        λz. refl(z)
+    )(x)
+);
+
+// Left and right unit laws: refl concatenated with p is propositionally p.
+export let lu = λ(A:U0). ind_id(
+    A,
+    λx. λy. λp. concat(A, x, x, refl(x), y, p) = p,
+    λx. refl(refl(x))
+);
+
+export let ru = λ(A:U0). ind_id(
+    A,
+    λx. λy. λp. concat(A, x, y, p, y, refl(y)) = p,
+    λx. refl(refl(x))
+);
+
+// The associativity statement (p followed by q) followed by r = p followed by (q followed by r).
+// A private helper keeps the three nested induction motives readable.
+let assoc_type = λ(A:U0). λ(x:A). λ(y:A). λ(p:x = y).
+    λ(z:A). λ(q:y = z). λ(w:A). λ(r:z = w).
+    concat(A, x, z, concat(A, x, y, p, z, q), w, r) =
+    concat(A, x, y, p, w, concat(A, y, z, q, w, r));
+
+// Keep later endpoints and paths universally quantified while eliminating an earlier path.
+export let concat_assoc = λ(A:U0). ind_id(
+    A,
+    // Induction on p, with q and r still arbitrary.
+    λx. λy. λp. Π(z:A). Π(q:y = z). Π(w:A). Π(r:z = w).
+        assoc_type(A, x, y, p, z, q, w, r),
+    λx. ind_id(
+        A,
+        // Here p is refl; induct on q while keeping r arbitrary.
+        λu. λv. λq. Π(w:A). Π(r:v = w).
+            assoc_type(A, u, u, refl(u), v, q, w, r),
+        λu. ind_id(
+            A,
+            // Both p and q are refl; eliminate r to finish.
+            λv. λw. λr. assoc_type(A, v, v, refl(v), v, refl(v), w, r),
+            λv. refl(refl(v))
+        )(u)
+    )(x)
+);
+
+// A path x=y transports a value in P(x) to a value in P(y).
+export let transport = λ(A:U0). λ(P:A -> U0). ind_id(
+    A,
+    λx. λy. λp. P(x) -> P(y),
+    λx. λu. u
+);
+
+// Dependent application compares values in the same fiber P(y).
+// f(x) and f(y) initially lie in different fibers: transport f(x) before comparing.
+export let apd = λ(A:U0). λ(P:A -> U0). λ(f:Π(x:A). P(x)). ind_id(
+    A,
+    λx. λy. λp. transport(A, P, x, y, p, f(x)) = f(y),
+    λx. refl(f(x))
+);

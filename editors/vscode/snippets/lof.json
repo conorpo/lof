@@ -1,0 +1,8 @@
+{
+  "Negation": {"prefix": "\\neg", "body": "¬", "description": "Negation: A -> 0"},
+  "Lambda": {"prefix": "\\lambda", "body": "λ", "description": "Lambda binder"},
+  "Dependent function": {"prefix": "\\Pi", "body": "Π", "description": "Dependent function type"},
+  "Dependent pair": {"prefix": "\\Sigma", "body": "Σ", "description": "Dependent pair type"},
+  "Function arrow": {"prefix": "\\to", "body": "→", "description": "Function arrow"},
+  "Product": {"prefix": "\\times", "body": "×", "description": "Product type"}
+}

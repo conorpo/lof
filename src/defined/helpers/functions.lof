@@ -1,0 +1,9 @@
+// Basic function combinators. Typed binders let their full types be inferred.
+export let identity = λ(A:U0). λ(x:A). x;
+
+// Keep a fixed value of A, ignoring the argument of type B.
+export let constant = λ(A:U0). λ(B:U0). λ(a:A). λ(b:B). a;
+
+// Composition takes the outer function g first, then the inner function f.
+export let compose = λ(A:U0). λ(B:U0). λ(C:U0).
+    λ(g:B -> C). λ(f:A -> B). λ(x:A). g(f(x));

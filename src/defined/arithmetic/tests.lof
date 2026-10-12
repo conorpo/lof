@@ -1,0 +1,27 @@
+import "./arithmetic.lof" as Arithmetic;
+
+// Concrete computations are checked by reflexivity because both sides normalize equally.
+export let add_two_three = refl(Arithmetic::add(#2, #3)) : Arithmetic::add(#2, #3) = #5;
+export let mul_two_three = refl(Arithmetic::mul(#2, #3)) : Arithmetic::mul(#2, #3) = #6;
+
+// State the intended generic laws independently of the inferred exports.
+export let add_left_unit = Arithmetic::add_zero_left
+    : Π(n:Nat). Arithmetic::add(#0, n) = n;
+export let add_right_unit = Arithmetic::add_zero_right
+    : Π(n:Nat). Arithmetic::add(n, #0) = n;
+export let add_successor = Arithmetic::add_succ_right
+    : Π(n:Nat). Π(m:Nat). Arithmetic::add(n, Succ(m)) = Succ(Arithmetic::add(n, m));
+export let addition_associative = Arithmetic::add_assoc
+    : Π(n:Nat). Π(m:Nat). Π(k:Nat).
+        Arithmetic::add(Arithmetic::add(n, m), k) = Arithmetic::add(n, Arithmetic::add(m, k));
+export let addition_commutative = Arithmetic::add_comm
+    : Π(n:Nat). Π(m:Nat). Arithmetic::add(n, m) = Arithmetic::add(m, n);
+export let mul_left_zero = Arithmetic::mul_zero_left : Π(n:Nat). Arithmetic::mul(#0, n) = #0;
+export let mul_right_zero = Arithmetic::mul_zero_right : Π(n:Nat). Arithmetic::mul(n, #0) = #0;
+export let mul_left_unit = Arithmetic::mul_one_left : Π(n:Nat). Arithmetic::mul(#1, n) = n;
+export let mul_right_unit = Arithmetic::mul_one_right : Π(n:Nat). Arithmetic::mul(n, #1) = n;
+
+// Boundary conventions: subtraction saturates at zero, and zero to zero is one.
+export let subtraction_truncates = refl(Arithmetic::sub(#2, #3)) : Arithmetic::sub(#2, #3) = #0;
+export let zero_to_zero = refl(Arithmetic::pow(#0, #0)) : Arithmetic::pow(#0, #0) = #1;
+export let factorial_four = refl(Arithmetic::factorial(#4)) : Arithmetic::factorial(#4) = #24;

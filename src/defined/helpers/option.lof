@@ -1,0 +1,22 @@
+// An optional A is either a value (left) or the unit witness of absence (right).
+export let Option = λA. A + 1 : U0 -> U0;
+
+export let none = λA. inr(*) : Π(A:U0). Option(A);
+export let some = λA. λa. inl(a) : Π(A:U0). A -> Option(A);
+
+// Eliminate an option into C: provide a default and a handler for a present value.
+export let option_rec = λ(A:U0). λ(C:U0). λ(none_case:C). λ(some_case:A -> C).
+    recCoproduct(Option(A), C, some_case, λu. none_case);
+
+// Transform the present value; preserve absence.
+export let map = λ(A:U0). λ(B:U0). λ(f:A -> B).
+    option_rec(A, Option(B), none(B), λa. some(B, f(a)));
+
+// The handler may itself return none, so bind does not add another Option layer.
+export let bind = λ(A:U0). λ(B:U0). λ(f:A -> Option(B)).
+    option_rec(A, Option(B), none(B), f);
+
+// Extract a value, using the supplied default when absent.
+export let get_or = λ(A:U0). λ(default:A). option_rec(A, A, default, λa. a);
+
+

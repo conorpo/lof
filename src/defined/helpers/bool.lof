@@ -1,0 +1,13 @@
+// Booleans as a coproduct of two unit types: left is true, right is false.
+export let Bool = 1 + 1;
+export let true = inl(*) : Bool;
+export let false = inr(*) : Bool;
+
+// Select a value in C; the boolean is the final argument.
+export let if_then_else = λ(C:U0). λ(yes:C). λ(no:C).
+    recCoproduct(Bool, C, λu. yes, λu. no);
+
+// These are boolean operations; logical negation of a type lives in logic.lof.
+export let not = if_then_else(Bool, false, true);
+export let and = λ(a:Bool). λ(b:Bool). if_then_else(Bool, b, false, a);
+export let or = λ(a:Bool). λ(b:Bool). if_then_else(Bool, true, b, a);
